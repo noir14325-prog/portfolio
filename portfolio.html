@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SOBISRI – 2D Animator & Editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f5fb; --surface:#ffffff; --ink:#15203b; --muted:#56607a; --line:#d5daea;
+  --accent:#2f5bff; --accent-ink:#ffffff; --ball:#ffbf1f; --shadow:rgba(21,32,59,.18);
+  --font:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1526; --surface:#18203a; --ink:#eef1fb; --muted:#9aa5c4; --line:#2a3558;
+    --accent:#7d9bff; --accent-ink:#0f1526; --ball:#ffc93c; --shadow:rgba(0,0,0,.5);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1526; --surface:#18203a; --ink:#eef1fb; --muted:#9aa5c4; --line:#2a3558;
+  --accent:#7d9bff; --accent-ink:#0f1526; --ball:#ffc93c; --shadow:rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.6;font-size:1.05rem}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 clamp(1.1rem,4vw,2rem)}
+nav{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1.2rem 0;flex-wrap:wrap}
+nav .brand{font-weight:800;text-decoration:none;font-size:1.15rem}
+nav ul{display:flex;gap:1.4rem;list-style:none;margin:0;padding:0;align-items:center;flex-wrap:wrap}
+nav a{text-decoration:none;color:var(--muted)}
+nav a:hover{color:var(--ink)}
+.theme{background:none;border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:.3rem .8rem;font:inherit;font-size:.9rem;cursor:pointer}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:2rem;align-items:center;padding:3rem 0 4rem}
+.hero h1{font-size:clamp(2.4rem,6.4vw,4.6rem);line-height:1.02;letter-spacing:-.02em;font-weight:800;margin:0 0 1.2rem}
+.hero p{max-width:34rem;color:var(--muted);margin:0 0 1.8rem}
+.btns{display:flex;gap:.8rem;flex-wrap:wrap}
+.btn{display:inline-block;padding:.75rem 1.3rem;border-radius:12px;text-decoration:none;font-weight:600;border:2px solid var(--ink)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.stage{position:relative;height:300px;border-bottom:3px solid var(--ink)}
+.ball{position:absolute;left:50%;bottom:0;width:84px;height:84px;margin-left:-42px;border-radius:50%;background:var(--ball);border:3px solid var(--ink);transform-origin:50% 100%;animation:bounce 1.5s cubic-bezier(.3,0,.7,1) infinite}
+.ball::after{content:"";position:absolute;left:22%;top:20%;width:18%;height:18%;border-radius:50%;background:#fff;opacity:.7}
+.shade{position:absolute;left:50%;bottom:-9px;width:90px;height:12px;margin-left:-45px;border-radius:50%;background:var(--shadow);animation:shade 1.5s cubic-bezier(.3,0,.7,1) infinite}
+@keyframes bounce{
+  0%{transform:translateY(-200px) scale(.92,1.1)}
+  45%{transform:translateY(-8px) scale(.95,1.06)}
+  50%{transform:translateY(0) scale(1.28,.72)}
+  55%{transform:translateY(-8px) scale(.95,1.06)}
+  100%{transform:translateY(-200px) scale(.92,1.1)}
+}
+@keyframes shade{0%,100%{transform:scale(.45);opacity:.4}50%{transform:scale(1.15);opacity:1}}
+.cap{margin:.7rem 0 0;font-size:.85rem;color:var(--muted)}
+
+/* sections */
+section{padding:3rem 0}
+h2{font-size:clamp(1.7rem,3.6vw,2.4rem);letter-spacing:-.01em;margin:0 0 .4rem;line-height:1.15}
+.sub{color:var(--muted);margin:0 0 1.6rem;max-width:36rem}
+.filters{display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.filters button{font:inherit;font-size:.95rem;padding:.45rem 1rem;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.4rem}
+.card{display:block;text-decoration:none;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.card:hover .thumb svg .play{transform:scale(1.12)}
+.thumb{aspect-ratio:16/9;position:relative;background:var(--tint)}
+.thumb svg{position:absolute;inset:0;width:100%;height:100%}
+.thumb .play{transform-box:fill-box;transform-origin:center;transition:transform .2s}
+.meta{padding:.9rem 1rem 1.1rem}
+.meta h3{margin:0 0 .15rem;font-size:1.1rem}
+.meta p{margin:0;color:var(--muted);font-size:.92rem}
+.tag{display:inline-block;margin-top:.55rem;font-size:.8rem;padding:.12rem .6rem;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.empty{color:var(--muted)}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem}
+.two p{max-width:34rem}
+.tools{display:flex;flex-wrap:wrap;gap:.5rem;padding:0;margin:0;list-style:none}
+.tools li{padding:.35rem .85rem;border:1px solid var(--line);background:var(--surface);border-radius:10px;font-size:.95rem}
+h3.small{font-size:1.05rem;margin:1.5rem 0 .6rem}
+.contact{background:var(--ink);color:var(--bg);border-radius:20px;padding:clamp(1.6rem,5vw,3rem);margin-bottom:3rem}
+.contact h2{margin-bottom:.6rem}
+.contact p{color:inherit;opacity:.8;max-width:34rem}
+.contact .btn{border-color:var(--bg);color:var(--bg);margin-top:.6rem}
+.contact .btn.primary{background:var(--ball);border-color:var(--ball);color:#15203b}
+.copy{font:inherit;font-size:.85rem;margin-left:.4rem;padding:.2rem .8rem;border-radius:999px;border:1px solid var(--bg);background:none;color:var(--bg);cursor:pointer}
+footer{padding:0 0 2.5rem;color:var(--muted);font-size:.9rem}
+
+@media (max-width:760px){
+  .hero{grid-template-columns:1fr;padding-top:1.5rem}
+  .stage{height:240px}
+  @keyframes bounce{
+    0%{transform:translateY(-150px) scale(.92,1.1)}
+    45%{transform:translateY(-8px) scale(.95,1.06)}
+    50%{transform:translateY(0) scale(1.28,.72)}
+    55%{transform:translateY(-8px) scale(.95,1.06)}
+    100%{transform:translateY(-150px) scale(.92,1.1)}
+  }
+  .two{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .ball,.shade{animation:none}
+  .ball{transform:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav aria-label="Main">
+    <a class="brand" href="#top">SOBISRI</a>
+    <ul>
+      <li><a href="#work">Work</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+      <li><button class="theme" id="theme" type="button">Dark mode</button></li>
+    </ul>
+  </nav>
+
+  <header class="hero" id="top">
+    <div>
+      <h1>I animate frame by frame, then cut it all together.</h1>
+      <p>I’m SOBISRI, a 2D animator and video editor. I make character animation, motion graphics, and edits that keep their timing from the first drawing to the final cut.</p>
+      <div class="btns">
+        <a class="btn primary" href="#work">See my work</a>
+        <a class="btn" href="#contact">Hire me</a>
+      </div>
+    </div>
+    <div>
+      <div class="stage" role="img" aria-label="A yellow ball bouncing with squash and stretch">
+        <div class="shade"></div>
+        <div class="ball"></div>
+      </div>
+      <p class="cap">Squash and stretch, 24 frames per second.</p>
+    </div>
+  </header>
+
+  <section id="work" aria-labelledby="work-h">
+    <h2 id="work-h">Selected work</h2>
+    <p class="sub">Animation and editing projects. The full collection is in my work samples folder.</p>
+    <p style="margin:0 0 1.6rem"><a class="btn primary" href="https://drive.google.com/drive/folders/12Dl3BA7TN3MOm2tWOnf46n7xQgADszoA?usp=sharing" target="_blank" rel="noopener">Open all work samples</a></p>
+    <div class="filters" role="group" aria-label="Filter projects">
+      <button type="button" data-f="all" aria-pressed="true">All</button>
+      <button type="button" data-f="Animation" aria-pressed="false">2D animation</button>
+      <button type="button" data-f="3D" aria-pressed="false">3D animation</button>
+      <button type="button" data-f="Editing" aria-pressed="false">Editing</button>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section id="about" aria-labelledby="about-h">
+    <h2 id="about-h">About</h2>
+    <div class="two">
+      <div>
+        <p>Write two or three sentences here: how you got into animation, what you like to make, and what kind of projects you want more of.</p>
+        <p>Mention that you do both jobs. Clients get one person who understands timing in the drawing and in the edit.</p>
+      </div>
+      <div>
+        <h3 class="small" style="margin-top:0">Animation tools</h3>
+        <ul class="tools"><li>Toon Boom Harmony</li><li>Adobe Animate</li><li>TVPaint</li><li>After Effects</li></ul>
+        <h3 class="small">Editing tools</h3>
+        <ul class="tools"><li>Premiere Pro</li><li>DaVinci Resolve</li><li>Audition</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" aria-labelledby="contact-h">
+    <div class="contact">
+      <h2 id="contact-h">Have a project?</h2>
+      <p>Tell me what you’re making, the length, and your deadline.</p>
+      <p>Or write to <strong id="mailtxt">gsobisri@gmail.com</strong> <button type="button" class="copy" id="copy">Copy</button></p>
+      <a class="btn primary" href="mailto:gsobisri@gmail.com" target="_blank" rel="noopener">Email me</a>
+      <a class="btn" href="https://drive.google.com/drive/folders/12Dl3BA7TN3MOm2tWOnf46n7xQgADszoA?usp=sharing" target="_blank" rel="noopener">Work samples</a>
+      <a class="btn" href="https://www.instagram.com/tany_gurl" target="_blank" rel="noopener">Instagram</a>
+      <a class="btn" href="https://www.linkedin.com/in/g-sobisri-a8983a34a" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+    <footer>© <span id="yr">2026</span> SOBISRI. All rights reserved.</footer>
+  </section>
+</div>
+
+<script>
+/* Edit this list. type is "Animation" (2D), "3D" or "Editing". href is the link the card opens. */
+var PROJECTS=[
+  {title:"2D Animation",role:"Open the folder to watch my 2D animation work",type:"Animation",tint:"#dfe6ff",href:"https://drive.google.com/drive/folders/1CMBLioxAaQa_lbaXaFy2SlZVDix8jO5J?usp=sharing"},
+  {title:"3D Animation",role:"Open the folder to watch my 3D animation work",type:"3D",tint:"#d9f3e6",href:"https://drive.google.com/drive/folders/1DthFdnYNXdFs6L-62jla2b04Snf4fbkv?usp=sharing"},
+  {title:"Video Editing",role:"Open the folder to watch my video edits",type:"Editing",tint:"#ffe9c2",href:"https://drive.google.com/drive/folders/1PtpvvlynVwil1NQG4MFfce7j_Z2c_kyf?usp=sharing"}
+];
+var DRIVE="https://drive.google.com/drive/folders/12Dl3BA7TN3MOm2tWOnf46n7xQgADszoA?usp=sharing";
+var grid=document.getElementById("grid");
+function thumb(p){
+  if(p.type==="3D"){return '<svg viewBox="0 0 300 169" aria-hidden="true"><polygon points="150,36 196,60 150,84 104,60" fill="#7d9bff"/><polygon points="104,60 150,84 150,134 104,110" fill="#2f5bff"/><polygon points="196,60 150,84 150,134 196,110" fill="#15203b"/><g class="play"><circle cx="262" cy="136" r="16" fill="#15203b"/><path d="M257 128l14 8-14 8z" fill="#fff"/></g></svg>';}
+  var art=p.type==="Animation"
+    ?'<circle cx="150" cy="92" r="30" fill="#ffbf1f" stroke="#15203b" stroke-width="3"/><ellipse cx="150" cy="140" rx="34" ry="5" fill="#15203b" opacity=".2"/>'
+    :'<rect x="50" y="62" width="120" height="16" rx="4" fill="#2f5bff"/><rect x="100" y="86" width="150" height="16" rx="4" fill="#15203b"/><rect x="70" y="110" width="90" height="16" rx="4" fill="#ffbf1f"/>';
+  return '<svg viewBox="0 0 300 169" aria-hidden="true">'+art+
+    '<g class="play"><circle cx="262" cy="136" r="16" fill="#15203b"/><path d="M257 128l14 8-14 8z" fill="#fff"/></g></svg>';
+}
+function render(f){
+  grid.innerHTML="";
+  var n=0;
+  PROJECTS.forEach(function(p){
+    if(f!=="all"&&p.type!==f)return;
+    n++;
+    var a=document.createElement("a");
+    a.className="card";a.href=(p.href==="#"?DRIVE:p.href);a.target="_blank";a.rel="noopener";
+    a.innerHTML='<div class="thumb" style="--tint:'+p.tint+'">'+thumb(p)+'</div>'+
+      '<div class="meta"><h3>'+p.title+'</h3><p>'+p.role+'</p><span class="tag">'+({Animation:"2D animation","3D":"3D animation",Editing:"Video editing"}[p.type])+'</span></div>';
+    grid.appendChild(a);
+  });
+  if(!n){grid.innerHTML='<p class="empty">No projects in this category yet.</p>';}
+}
+document.querySelectorAll(".filters button").forEach(function(b){
+  b.addEventListener("click",function(){
+    document.querySelectorAll(".filters button").forEach(function(x){x.setAttribute("aria-pressed","false")});
+    b.setAttribute("aria-pressed","true");
+    render(b.dataset.f);
+  });
+});
+render("all");
+
+var root=document.documentElement,tb=document.getElementById("theme");
+function isDark(){
+  var t=root.getAttribute("data-theme");
+  if(t)return t==="dark";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+function label(){tb.textContent=isDark()?"Light mode":"Dark mode"}
+tb.addEventListener("click",function(){root.setAttribute("data-theme",isDark()?"light":"dark");label()});
+label();
+var cb=document.getElementById("copy"),mt=document.getElementById("mailtxt");
+cb.addEventListener("click",function(){
+  function done(){cb.textContent="Copied";setTimeout(function(){cb.textContent="Copy"},1800)}
+  function sel(){
+    var r=document.createRange();r.selectNodeContents(mt);
+    var s=window.getSelection();s.removeAllRanges();s.addRange(r);
+    try{document.execCommand("copy");done()}catch(e){cb.textContent="Press Ctrl+C"}
+  }
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText("gsobisri@gmail.com").then(done,sel);return}
+  }catch(e){}
+  sel();
+});
+document.getElementById("yr").textContent=new Date().getFullYear();
+</script>
+</body>
+</html>
